@@ -222,6 +222,24 @@ function keys(dict2) {
 }
 
 // build/dev/javascript/gleam_stdlib/gleam/list.mjs
+function drop(loop$list, loop$n) {
+  while (true) {
+    let list2 = loop$list;
+    let n = loop$n;
+    let $ = n <= 0;
+    if ($) {
+      return list2;
+    } else {
+      if (list2.hasLength(0)) {
+        return toList([]);
+      } else {
+        let rest$1 = list2.tail;
+        loop$list = rest$1;
+        loop$n = n - 1;
+      }
+    }
+  }
+}
 function fold(loop$list, loop$initial, loop$fun) {
   while (true) {
     let list2 = loop$list;
@@ -1175,9 +1193,6 @@ function on(name, handler) {
 function class$(name) {
   return attribute("class", name);
 }
-function src(uri) {
-  return attribute("src", uri);
-}
 
 // build/dev/javascript/lustre/lustre/element.mjs
 function element(tag, attrs, children2) {
@@ -1922,9 +1937,6 @@ function div(attrs, children2) {
 function p(attrs, children2) {
   return element("p", attrs, children2);
 }
-function img(attrs) {
-  return element("img", attrs, toList([]));
-}
 function button(attrs, children2) {
   return element("button", attrs, children2);
 }
@@ -1945,30 +1957,43 @@ function item() {
 }
 
 // build/dev/javascript/lustre_todo/lustre_todo.mjs
-var Incr = class extends CustomType {
+var Model2 = class extends CustomType {
+  constructor(count, todo_list) {
+    super();
+    this.count = count;
+    this.todo_list = todo_list;
+  }
 };
-var Decr = class extends CustomType {
+var Increment = class extends CustomType {
+};
+var Decrement = class extends CustomType {
 };
 function init2(_) {
-  return 0;
+  return new Model2(0, toList([]));
 }
 function update(model, msg) {
-  if (msg instanceof Incr) {
-    return model + 1;
+  if (msg instanceof Increment) {
+    let _record = model;
+    return new Model2(model.count + 1, _record.todo_list);
   } else {
-    return model - 1;
+    return new Model2(model.count - 1, drop(model.todo_list, 1));
   }
 }
 function view(model) {
-  let count = to_string(model);
+  let count = to_string(model.count);
   return div(
     toList([]),
     toList([
       item(),
-      button(toList([on_click(new Incr())]), toList([text(" + ")])),
-      p(toList([class$("text-green-400")]), toList([text(count)])),
-      button(toList([on_click(new Decr())]), toList([text(" - ")])),
-      img(toList([src("https://cdn2.thecatapi.com/images/b7k.jpg")]))
+      button(
+        toList([
+          class$("bg-green-500"),
+          on_click(new Increment())
+        ]),
+        toList([text("+")])
+      ),
+      text(count),
+      button(toList([on_click(new Decrement())]), toList([text("-")]))
     ])
   );
 }
@@ -1979,7 +2004,7 @@ function main() {
     throw makeError(
       "let_assert",
       "lustre_todo",
-      11,
+      13,
       "main",
       "Pattern match failed, no pattern matched the value.",
       { value: $ }

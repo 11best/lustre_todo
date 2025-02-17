@@ -1,9 +1,10 @@
 import component/item.{item}
 import gleam/int
+import gleam/list
 import lustre
 import lustre/attribute
 import lustre/element.{text}
-import lustre/element/html.{button, div, img, p}
+import lustre/element/html.{button, div, p}
 import lustre/event.{on_click}
 
 pub fn main() {
@@ -13,30 +14,41 @@ pub fn main() {
   Nil
 }
 
-fn init(_flags) {
-  0
+pub type Todo {
+  Todo(id: String, task: String, is_finished: Bool)
 }
 
-type Msg {
-  Incr
-  Decr
+pub type Model {
+  Model(count: Int, todo_list: List(Todo))
 }
 
-fn update(model, msg) {
+fn init(_flags) -> Model {
+  Model(0, [])
+}
+
+pub type Msg {
+  Increment
+  Decrement
+  //   AddTodo
+  // RemoveTodo
+  // FinishTodo
+}
+
+pub fn update(model: Model, msg: Msg) -> Model {
   case msg {
-    Incr -> model + 1
-    Decr -> model - 1
+    Increment -> Model(..model, count: model.count + 1)
+    Decrement ->
+      Model(count: model.count - 1, todo_list: list.drop(model.todo_list, 1))
   }
 }
 
-fn view(model) {
-  let count = int.to_string(model)
+pub fn view(model: Model) -> element.Element(Msg) {
+  let count = int.to_string(model.count)
 
   div([], [
     item(),
-    button([on_click(Incr)], [text(" + ")]),
-    p([attribute.class("text-green-400")], [text(count)]),
-    button([on_click(Decr)], [text(" - ")]),
-    img([attribute.src("https://cdn2.thecatapi.com/images/b7k.jpg")]),
+    button([attribute.class("bg-green-500"), on_click(Increment)], [text("+")]),
+    text(count),
+    button([on_click(Decrement)], [text("-")]),
   ])
 }
